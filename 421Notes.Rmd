@@ -1,0 +1,378 @@
+---
+title: "421 Notes Binomial Inference"
+author: "MJ Foster"
+output:
+  html_document:
+    code_folding: hide
+    theme: darkly
+    highlight: tango
+    toc: true
+
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Large sample confidence interval for $\pi$
+
+Every CI based on the normal has the following form:
+
+$Estimate \pm z_{\frac{\alpha}{2}} * SE$
+
+Interval has confidence level $100\% * (1-\alpha)$
+
+If $np \geq 5$ and  $n(1-p) \geq 5$
+
+then
+
+$$ p \pm z_{\frac{\alpha}{2}} * \sqrt{\frac{p(1-p)}{n}} $$
+is $100\% * (1-\alpha)$ CI
+
+If this does not hold, the nominal confidence estimated by the normal distribution will not be close to the exact confidence interval by the binomial distribution.
+
+## Large sample hypothesis test for $\pi$
+
+If $n\pi_{o} \geq 5$ and  $n(1-\pi_{o}) \geq 5$
+
+then
+
+$$  z = \frac {p - \pi_{o}}  {\sqrt{\frac{\pi_{o}(1-\pi_{o})}{n}}} $$
+A large sample $\alpha$ level test of H0 rejects if
+
+$$\lvert z \rvert > z_{\frac{\alpha}{2}}$$
+
+#### Alternate definition of the CI : The set of all $\pi_{o}$ all the parameters that do not reject Ho. "Inverting the test"
+
+Wilson Score Interval
+
+$$  z_{\frac{\alpha}{2}} =  \frac{|p - \pi_{o}|} {\sqrt{\frac{\pi_{o}(1-\pi_{o})}{n}}} $$
+Solve for the two $\pi_{o}$ and those are your end points. This is better for smaller sample sizes.
+
+## Wald, Score and LRT
+
+Can be defined for any parametric model! Apply here to the binomial.
+
+#### Wald-type inference
+Our inference is based on large sample (asymtotic) normality of the MLE and the SE is estimated using MLE.
+
+In the binomial case Y ~ Bin(n, $/pi$)
+
+$$z = \frac{p - \pi_{o}}{\sqrt{\frac{p(1-p)}{n}}}$$
+
+Use p instead of $\pi$
+
+#### Inversions of Wald Test (CI)
+
+$$  z_{\frac{\alpha}{2}} =  \frac{|p - \pi_{o}|} {\sqrt{\frac{p(1-p)}{n}}} $$
+
+#### Score inference: based on the derivative of the log-likelihood function at $\pi_{o}$
+
+Uses the null hypothesis to estimate the SE of the MLE.
+
+$$  z = \frac {p - \pi_{o}}  {\sqrt{\frac{\pi_{o}(1-\pi_{o})}{n}}} $$
+
+Wilson Score Interval is the inversion CI of the score test.
+
+#### Likelihood Ratio Inference
+Likelihood: probability of the observed parameters
+
+Test statistic is based on the ratio of:
+
+a) the maximum value of the likelihood function over parameter values which satisfy the null hypothesis.
+
+b) the maximum value of the likelihood function over all parameters.
+
+The ratio represents the strength of evidence against Ho.
+
+$$G^2 = -2log \frac{L0}{L1}$$
+
+L0= most probable values under H0
+L1 = most probable values under all possible values
+
+The larger $G^2$ then the ratio is smaller therefore the data fits the null poorly. More evidence against the null.
+
+Under H0, $G^2$ ~ $\chi_{(1)}$
+
+Reject H0 at level $\alpha$ if $G^2$ > Chi($\alpha$, 1)
+
+For the binomial case when H0: $\pi = \pi_{o}$
+
+L0 = Likelihood at $\pi_{o}$ = $\binom{n}{y} \pi_{o}^{y} * (1- \pi_{o}^{n-y})$
+$G^2 = -2log( \frac{p}{\pi_{o}^{y}} * \frac{1-p}{(1- \pi_{o}^{n-y})})$
+
+
+## Small Sample Binomial Inference
+
+#### What kind of inference for binomial proportions are valid with small sample sizes? ie. asymtotic normaility does not apply. EXACT methods, ie use the binomial distribution directly.
+
+Y ~ Binom(5, $\pi$)
+
+Testing Ho: $\pi =0.6$, Ha: $\pi <0.6$
+
+Observe 1 success, ie y=1
+
+P-value = P(Y $\leq$ 1 | $\pi_0 = 0.6$) =
+
+```{r}
+choose(5,0)*(.6^0)*((.4)^5)+choose(5,1)*(.6^1)*((.4)^4)
+```
+
+Discrete distributions force us to be more conservative because it can only take certain values. 1 or 2 sided alternatives are v important here.
+
+If we have a two sided p-value:
+
+Y ~ Binom(s, $\pi$)
+
+Testing Ho: $\pi = \pi_0$, Ha: $\pi \neq \pi_0$
+
+Suppose $\pi = 0.5$  Symmetric case where we can just double our 1 sided p value in the direction of our data. Binomial PMF is symmetrical
+
+For $\pi_0 \neq 0.5$ PMF is skewed. We will use the following two sided p-value def: add up the probabilities of all outcomes no more probable than what was observed under the null hypothesis.
+
+Calculate the probability of what we observed + anything less probable than what we observed under H0.
+
+Ex: Y ~ Binom(5, $\pi$)
+
+Testing Ho: $\pi =0.6$, Ha: $\pi <0.6$
+
+Observe 5 successs, ie y=5. Check y=0 and y=1 have smaller probabilities under H0 than y=5. 
+
+P-value= P(Y = 0 | $\pi_0 = 0.6$) +P(Y = 1 | $\pi_0 = 0.6$) +P(Y = 5 | $\pi_0 = 0.6$)
+
+```{r}
+choose(5,0)*(.6^0)*((.4)^5)+choose(5,1)*(.6^1)*((.4)^4)+choose(5,5)*(.6^5)*((.4)^0)
+```
+
+#### Small Sample confidence intervals
+
+Obtained by inverting small sample tests. For a two sided interval include all values of $\pi_0$ such that the two sided p value is $\geq \alpha$
+
+Ex: Y ~ Binom(5, $\pi$)
+
+Observe y=1,  use lots of different values of $\pi_0$ you get an interval of (0.01,0.66) v wide! Only include the values of $\pi_0$ for which the p value is larger than alpha. Derek does this in Code 01 - One sample binomial inference
+
+#### Conservative test
+
+The actual type 1 error probability is actually smaller than the nominal one. This happens in discrete inference.
+
+Ex: Y ~ Binom(5, $\pi$)
+
+Testing Ho: $\pi =0.6$, Ha: $\pi <0.6$
+
+Set $\alpha=0.05$ 
+
+If we observe y=0, P-value= P(Y = 0 | $\pi_0 = 0.6$) = 0.0102, we would reject H0. But when y=1, p=0.09. We loss significance with just one success, if we see anything else besides 0 we reject. That means the probability of a type 1 error is .0102 (the only p-value where we could reject.) Our power is prob. much lower than we suspect.
+
+
+## Comparing two population proportions
+
+#### Two independent binomial samples. Two different conditions and two different responses
+
+Ex: Study on myocardial infarction (MI) vs. aspirin use. Does aspirin reduce the number of heart attacks?
+
+
+Y1 ~ Binom(n1, $\pi_1$)
+Y2 ~ Binom(n2, $\pi_2$)
+
+Testing Ho: $\pi_1 - \pi_2 = 0$, Ha: $\pi_1 \neq \pi_2$
+
+#### Wald Type procedure: the MLE of the parameter of interest $\pi_1 - \pi_2$
+take the observed differences of proportions of interest.
+
+$$ p_1 - p_2 \pm z_{\frac{\alpha}{2}} *  \sqrt{\frac{p1(1-p1)}{n1}+\frac{p2(1-p2)}{n2}}   $$
+
+```{r Example of a wald type interval}
+Placebo <- c(189, 10485, 11034)
+Trt <-c(104,10933,11037)
+p1 = 189/11034
+p2= 104/11037
+se = sqrt(((p1*(1-p1))/11034)+((p2*(1-p2))/11037))
+
+p1-p2 + 1.96 *se
+p1-p2 - 1.96 *se
+```
+
+#### Score test
+
+We make this a score test by introducing information from the null hypothesis into the SE
+
+Testing Ho: $\pi_1 = \pi_2 = \pi$
+
+SE: $\pi(1-\pi)[1/n1+1/n2]$
+
+Estimating $\pi$
+ 
+p = $(y1+y2) /(n1+n2)$
+
+Total number of success over total number of trials. 
+
+Score test statistic:  $\frac{p_1 - p_2}{p(1-p)[1/n1+1/n2]}$
+
+```{r}
+p = (189+104)/(11034+11037)
+z= (p1-p2)/(sqrt(p*(1-p)*((1/11034)+(1/11037))))
+```
+
+## Relative Risk
+
+When taking the difference, importance changes in how large the values actually are.
+
+Let Y ~ Bin($n_1$, $\pi$) and  X ~ Bin($n_2$, $\pi_2$)
+
+The relative risk is $\frac{\pi_1}{\pi_2}$
+
+The sample relative risk is $\frac{p_1}{p_2}$
+
+Ex: RR in MI
+
+RR = $\frac{p_1}{p_2} = 0.0171/0.0094 = 1.82$
+
+The chance of MI is 82% higher if you don't take aspirin vs. if you do. Is this statistically significant?
+
+#### Inference of relative risk. 
+
+Distribution of $\frac{\pi_1}{\pi_2}$ is very skewed. The ratio of 2 positive RVs, when ${\pi_1} >>> {\pi_2}$ causes skewness to the right. Eventually it will normalize but only with very large sample size. Taking a transformation that can unskew the distribution. Log! Symmetrize!
+
+$$log(\frac{\pi_1}{\pi_2}) = log(\pi_1) - log(\pi_2)$$ 
+We need the approximate SE. 
+
+$$ Var(log(\pi_1) - log(\pi_2)) = \frac{(1-\pi_1)}{(n_1\pi_1)} +\frac{(1-\pi_2)}{(n_2\pi_2)} $$
+Replacing with p and using a lil algebra
+
+SE = $$\sqrt{\frac{(1-p_1)}{(n_1p_1)} +\frac{(1-p_2)}{(n_2p_2)}} = \sqrt{\frac{1}{y_1} +\frac{1}{n_1}+\frac{1}{y_2}+\frac{1}{n_2}}$$
+
+Large sample CI for log(RR)
+
+$$log(\frac{p_1}{p_2}) \pm  z_{\frac{\alpha}{2}} \sqrt{\frac{1}{y_1} +\frac{1}{n_1}+\frac{1}{y_2}+\frac{1}{n_2}}$$
+Ex: Aspirin vs. MI.  Sample RR = 1.82, 95% CI for log RR (.3598,.8355)
+```{r}
+RRCI= exp(c(.3598,.8355))
+```
+
+95% CI for RR is `r RRCI` Note that is exponential is not symmetric. The log CI is symmetric but the exponential regains its skewness.
+
+## Contingency Tables
+
+Ex: Kiser and Schafer (1949) n=1436 famous women who had been married at least once. Wow this is sexist!
+
+```{r}
+wm<-as.table(rbind(c(550,61, 611),c(681,144,825),c(1231,205,1436)))
+colnames(wm) <- c("Married 1", "Married 2+", "Total")
+rownames(wm) <- c("College", "No College", "Total")
+wm
+```
+
+The problem here is that the rows are not fixed in number. Ideally you'd want to have equal number of college and no college and then see if their married. In this case its like a multinomial with 4 responses.
+
+Structure of 2x2 table: Y - response, X - explainatory, 1st subscript for row, 2nd for column.
+
+#### Parameters for Contingency Tables
+
+* Probability of cell ij, can be interpreted as a joint probability 
+
+$$ \pi_{ij}$$
+
+* Marginial prob of row i 
+
+$$\pi_{i+} = \sum_{j=1}^{J} \pi_{ij} $$ 
+
+* Marginial prob of col j 
+
+$$\pi_{+j} = \sum_{i=1}^{I} \pi_{ij} $$
+
+#### Estimates
+
+$$ p_{ij} = n_{ij}/n$$
+$$p_{i+} = n_{i+}/n$$
+ $$p_{+j} = n_{+j}/n$$
+
+#### CT Sampling Types:
+
+* Poisson: every cell count nij is an independent Poisson RV
+
+* Multinomial Sampling: each cell is a mutlinomial count in an IxJ dimensional mutlinomial distribution. n is fixed
+
+* Independent Row sampling, each row in the table is an independent J dimensional multinomial.I independent multinomial sample. Row marginal counts ni+ are fixed. All the row probabilities are 1 since each is a sample.
+
+For all 3 sampling types, H0 is the distribution of Y (response/cols) is the same within each row. It doesn't matter which level of X we're in, the category probabilities of Y are the same from row to row.
+
+For 2x2 tables H0: $\frac{\pi_{11}}{\pi_{1+}} = \frac{\pi_{21}}{\pi_{2+}}$
+The conditional probability of success conditional on row 1 and row 2 are equal.
+
+For multinomial sampling this is equivalent to independence of X and Y. If X and Y are not independent we will say they are associated.
+
+Fits the assumption of independence H0 : $\pi_{ij} = \pi_{i+} * \pi_{+j}$
+
+So far only the score test is valid for all 3 CT sampling schemes. It is still valid even if there isn't independence if we we have large samples. But the wald test and RR require independent samples. Variablity is underestimated if independence is violated and therefore we can have significance when we actually don't!
+
+## Odds Ratio 
+
+Note: Works for all 3 sampling types!
+
+(Odds of success in row (or col) 1) / (odds of success in row (or col) 2)
+
+Definition: For a probability of success $\pi$, the odds of success are definied by odds  =  $\frac{\pi}{1-\pi}$ how much more likely is success vs. failure, also $\pi =\frac{odds}{odds+1}$
+
+Definition: For a 2x2 table, let odds_i = the odds of success in row i, i=(1,2) Then the odds ratio 
+
+$$\theta =\frac{odds_{1}}{odds_{2}} $$
+
+$$ = \frac{\frac{\frac{\pi_{11}}{\pi_{1+}}}{\frac{\pi_{12}}{\pi_{1+}}}}{\frac{\frac{\pi_{21}}{\pi_{2+}}}{\frac{\pi_{22}}{\pi_{2+}}}}$$
+
+$$ = \frac{\pi_{11}\pi_{22}}{\pi_{12}\pi_{21}}$$
+#### Example Aspirin vs. MI
+
+Odds of MI in placebo $odds_{1} = 0.0171/(1-0.0171) = 0.0174$
+
+Odds of MI in aspirin $odds_{2} = 0.0094/(1- 0.0094) =  0.0095$
+
+Odds ratio = 0.0174/0.0095 = 1.83, the odds of MI are 83% higher in placebo. Odds are 1.83 to 1.
+
+#### Properties of odds rations
+
+1. $\theta \epsilon [0,\inf)$
+2. If 2x2 table is independent, $\theta = 1$. If $\theta > 1$ odds of success are higher in row 1, if $\theta < 1$ odds of success are lower in row 1. E.g. is $\theta=4$ the odds of success are 4 times higher in row 1, of the odds of success are 1/4 as high in row 2. 
+3. If the order of rows is reversed, this corresponds to taking the reciprocal of the odds ratio.
+4. If rows and columns are exchanged the odds ratio does not change.
+
+#### Inference/Estimation of the OR
+
+Sample odds ratio is the MLE of $\theta$
+
+$$ \hat{\theta}= \frac{\frac{p_{11}}{p_{12}}}{\frac{p_{21}}{p_{22}}}$$
+
+$$ \hat{\theta}= \frac{n_{11}n_{22}}{n_{12}n_{21}}$$
+We need an approximation to the sampling distribution of $\hat{\theta}$. As the ratio of two RVs the distribution is skewed. We're again going to use the log to get it to normalize more quickly.
+
+* Large Sample normal approximation to 
+
+$$\frac{log(\hat{\theta}) - {\theta}}{SE(log(\hat{\theta}))}$$
+
+$$SE(log(\hat{\theta}))= \sqrt{\frac{1}{n_{11}} +\frac{1}{n_{12}}+\frac{1}{n_{21}}+\frac{1}{n_{22}}}$$
+
+$$log(\theta) \pm  z_{\frac{\alpha}{2}} \sqrt{\frac{1}{n_{11}} +\frac{1}{n_{12}}+\frac{1}{n_{21}}+\frac{1}{n_{22}}}$$
+Then exponentiate to get the confidence interval for the OR.
+
+#### Corrections for 0 cell counts
+
+SE is imprecise when a cell count is small. If one cell count is 0 then the OR is either 0 or infinity. If any row or column is 0 then OR = 0/0 ??? No! Bad!
+
+A simple remedy is to add 0.5 to *every* cell count. Adds bias but not a lot of bias. Apparently 0.5 does not add first order bias based on a property of the Poisson distribution. Score tests also work but they're harder.
+
+#### Relationship between OR and RR
+
+$$ \theta = \frac{\pi_{11}\pi_{22}}{\pi_{12}\pi_{21}}$$
+
+$$ = \frac{\pi_{1}}{\pi_{2}} * \frac{1-\pi_{1}}{1-\pi_{2}}$$ 
+
+$$ RR * \frac{1-\pi_{1}}{1-\pi_{2}}$$
+
+#### Odds Ratios "work" for retrospective studies
+
+* Prospective study : work forward in time and see if disease/outcome happens.
+
+* For retrospective studies you need to work the other direction. Condition on disease status and then see the probability they are in a certain demographic. Case control can compute OR but since the sampling scheme is different the SE changes because cases depend on control.
+
+
+
